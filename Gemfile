@@ -2,10 +2,10 @@ source "https://rubygems.org"
 
 gem "bootsnap", require: false
 gem "cssbundling-rails"
+gem "feedjira"
 gem "image_processing", "~> 1.2"
 gem "jbuilder"
 gem "jsbundling-rails"
-gem "kamal", require: false
 gem "propshaft"
 gem "puma", ">= 5.0"
 gem "rails", "~> 8.1.4"
@@ -15,7 +15,6 @@ gem "solid_cache"
 gem "solid_queue"
 gem "sqlite3", ">= 2.1"
 gem "stimulus-rails"
-gem "thruster", require: false
 gem "turbo-rails"
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
@@ -35,4 +34,5 @@ end
 group :test do
   gem "capybara"
   gem "selenium-webdriver"
+  gem "webmock"
 end

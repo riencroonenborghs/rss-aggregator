@@ -4,10 +4,10 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The `kamal` and `thruster` gems are removed, along with the Kamal deploy config, its secrets directory, `Dockerfile` and `.dockerignore`. Nothing else still refers to them, including binstubs and CI.
-- [ ] `feedjira` is in the app dependencies, and `webmock` is in the test group. WebMock is enabled in the RSpec setup so that real HTTP is blocked in tests.
-- [ ] The dev Procfile runs `bin/jobs` along with web, js and css.
-- [ ] The README says that production needs `bin/jobs` running as its own process (for example under systemd), or the Aggregate Feed will never update.
-- [ ] The app boots, and `bundle exec rspec` runs green with no specs.
+- [x] The `kamal` and `thruster` gems are removed, along with the Kamal deploy config, its secrets directory, `Dockerfile` and `.dockerignore`. Nothing else still refers to them, including binstubs and CI.
+- [x] `feedjira` is in the app dependencies, and `webmock` is in the test group. WebMock is enabled in the RSpec setup so that real HTTP is blocked in tests.
+- [x] The dev Procfile runs `bin/jobs` along with web, js and css.
+- [x] The README says that production needs `bin/jobs` running as its own process (for example under systemd), or the Aggregate Feed will never update.
+- [x] The app boots, and `bundle exec rspec` runs green with no specs.
