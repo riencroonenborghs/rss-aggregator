@@ -16,6 +16,11 @@ module RssAggregator
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    # How Sources are fetched. The User-Agent identifies the aggregator to
+    # Source owners; the timeout keeps one slow Source from tying up a worker.
+    config.x.source_fetcher.user_agent = ENV.fetch("SOURCE_FETCHER_USER_AGENT", "RSSAggregator/1.0")
+    config.x.source_fetcher.timeout = 15
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

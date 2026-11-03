@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 require "rake"
 
@@ -6,11 +8,13 @@ RSpec.describe "sources rake tasks" do
 
   let(:url) { "https://blog.example.com/feed.xml" }
 
-  def run_add(*args)
-    task = Rake::Task["sources:add"]
+  def run(name, *args)
+    task = Rake::Task[name]
     task.reenable
     task.invoke(*args)
   end
+
+  def run_add(*args) = run("sources:add", *args)
 
   describe "sources:add" do
     it "adds the Source, fetches it immediately and reports how many Entries were stored" do
@@ -26,6 +30,36 @@ RSpec.describe "sources rake tasks" do
 
       expect { run_add(url) }.to raise_error(SystemExit).and output(/Url has already been taken/).to_stderr
       expect(Source.count).to eq(1)
+    end
+
+    it "reports a failed first fetch" do
+      stub_request(:get, url).to_return(status: 404)
+
+      expect { run_add(url) }.to raise_error(SystemExit).and output(/first fetch failed: .*HTTP 404/).to_stderr
+      expect(Source.find_by!(url: url).last_error).to include("HTTP 404")
+    end
+  end
+
+  describe "sources:list" do
+    it "prints each Source's name, URL, last fetch time, last error and Entry count" do
+      healthy = Source.create!(url: url, name: "Healthy", last_fetched_at: Time.utc(2026, 11, 3, 8))
+      healthy.entries.create!(identifier: "a", published_at: 1.day.ago, first_seen_at: 1.day.ago)
+      healthy.entries.create!(identifier: "b", published_at: 1.day.ago, first_seen_at: 1.day.ago)
+      Source.create!(url: "https://broken.example.com/feed.xml", name: "Broken",
+        last_error: "SourceFetcher::Error: HTTP 500", last_error_at: Time.utc(2026, 11, 3, 9))
+
+      expect { run("sources:list") }.to output(<<~TEXT).to_stdout
+        Broken
+          URL:          https://broken.example.com/feed.xml
+          Last fetched: never
+          Last error:   SourceFetcher::Error: HTTP 500 (2026-11-03 09:00:00)
+          Entries:      0
+        Healthy
+          URL:          https://blog.example.com/feed.xml
+          Last fetched: 2026-11-03 08:00:00
+          Last error:   none
+          Entries:      2
+      TEXT
     end
   end
 end

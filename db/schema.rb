@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_02_235737) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_03_002503) do
   create_table "entries", force: :cascade do |t|
     t.integer "source_id", null: false
     t.string "identifier", null: false
@@ -33,6 +33,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_02_235737) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "last_fetched_at"
+    t.text "last_error"
+    t.datetime "last_error_at"
+    t.string "etag"
+    t.string "last_modified"
     t.index ["url"], name: "index_sources_on_url", unique: true
   end
 

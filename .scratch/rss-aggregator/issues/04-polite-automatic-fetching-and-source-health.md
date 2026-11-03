@@ -10,13 +10,13 @@
 
 **Blocked by:** 02 (Tracer bullet: add a Source and see its Entries in /feed.rss)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The recurring config schedules the fetch-all task every 30 minutes, and it enqueues one job per Source (smoke test).
-- [ ] A fetch sends `If-None-Match` / `If-Modified-Since` when values are stored, and stores the new ones from the response.
-- [ ] A 304 response updates the last fetch time and changes no Entries.
-- [ ] Every request sends the configured User-Agent.
-- [ ] A timeout, a 500 response or invalid XML records the error message and time on the Source, doesn't raise out of the job, and leaves existing Entries intact.
-- [ ] The next successful fetch clears the recorded error.
-- [ ] A Source with a blank name gets the Source's title after its first successful fetch.
-- [ ] `sources:list` prints name, URL, last fetch time, last error and Entry count for every Source.
+- [x] The recurring config schedules the fetch-all task every 30 minutes, and it enqueues one job per Source (smoke test).
+- [x] A fetch sends `If-None-Match` / `If-Modified-Since` when values are stored, and stores the new ones from the response.
+- [x] A 304 response updates the last fetch time and changes no Entries.
+- [x] Every request sends the configured User-Agent.
+- [x] A timeout, a 500 response or invalid XML records the error message and time on the Source, doesn't raise out of the job, and leaves existing Entries intact.
+- [x] The next successful fetch clears the recorded error.
+- [x] A Source with a blank name gets the Source's title after its first successful fetch.
+- [x] `sources:list` prints name, URL, last fetch time, last error and Entry count for every Source.

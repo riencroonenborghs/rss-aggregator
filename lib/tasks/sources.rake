@@ -4,11 +4,28 @@ namespace :sources do
     source = Source.new(url: args[:url], name: args[:name])
     abort "Could not add Source: #{source.errors.full_messages.to_sentence}" unless source.save
 
-    begin
-      count = source.fetch
-      puts "Added #{source.display_name}: #{count} #{'Entry'.pluralize(count)} stored"
-    rescue StandardError => e
-      abort "Added #{source.display_name}, but the first fetch failed: #{e.message}"
+    fetch = source.fetch
+    abort "Added #{source.display_name}, but the first fetch failed: #{fetch.error}" unless fetch.success?
+
+    count = fetch.new_entries_count
+    puts "Added #{source.display_name}: #{count} #{'Entry'.pluralize(count)} stored"
+  end
+
+  desc "List Sources with their last fetch time, last error and Entry count"
+  task list: :environment do
+    sources = Source.left_joins(:entries).group(:id).select("sources.*, COUNT(entries.id) AS entries_count").order(:name, :url)
+    if sources.empty?
+      puts "No Sources. Add one with: bin/rails 'sources:add[URL,NAME]'"
+      next
+    end
+
+    format_time = ->(time) { time ? time.to_fs(:db) : "never" }
+    sources.each do |source|
+      puts source.display_name
+      puts "  URL:          #{source.url}"
+      puts "  Last fetched: #{format_time.(source.last_fetched_at)}"
+      puts "  Last error:   #{source.last_error ? "#{source.last_error} (#{format_time.(source.last_error_at)})" : 'none'}"
+      puts "  Entries:      #{source.entries_count}"
     end
   end
 end
