@@ -9,11 +9,11 @@
 
 **Blocked by:** 02 (Tracer bullet: add a Source and see its Entries in /feed.rss)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] An Atom fixture is ingested into Entries with the same fields as RSS.
-- [ ] Identity is used in this order: guid / Atom id, then link, then a hash of title + date. Re-fetching a guid-less fixture creates no repeats.
-- [ ] When an item is re-fetched with a changed title or content, the existing Entry is updated. Its published date, first-seen time and order in `/feed.rss` stay the same.
-- [ ] Items with a missing or future published date are stored with the published date set to the first-seen time.
-- [ ] Items published more than 30 days before the fetch are not stored.
-- [ ] All of the above are covered by specs at the fetch-a-Source seam.
+- [x] An Atom fixture is ingested into Entries with the same fields as RSS.
+- [x] Identity is used in this order: guid / Atom id, then link, then a hash of title + date. Re-fetching a guid-less fixture creates no repeats.
+- [x] When an item is re-fetched with a changed title or content, the existing Entry is updated. Its published date, first-seen time and order in `/feed.rss` stay the same.
+- [x] Items with a missing or future published date are stored with the published date set to the first-seen time.
+- [x] Items published more than 30 days before the fetch are not stored.
+- [x] All of the above are covered by specs at the fetch-a-Source seam.

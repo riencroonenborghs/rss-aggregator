@@ -60,6 +60,25 @@ RSpec.describe "Aggregate Feed", type: :request do
     expect(items.first.at_xpath("guid").text).to eq(first_guid.text)
   end
 
+  it "keeps an Entry in its position after the Source updates it" do
+    rss = lambda do |older_title, older_date|
+      <<~XML
+        <rss version="2.0"><channel><title>Example Blog</title><link>https://blog.example.com/</link><description>x</description>
+          <item><guid>newer</guid><title>Newer</title><pubDate>#{1.hour.ago.rfc2822}</pubDate></item>
+          <item><guid>older</guid><title>#{older_title}</title><pubDate>#{older_date.rfc2822}</pubDate></item>
+        </channel></rss>
+      XML
+    end
+    stub_request(:get, source.url).to_return(body: rss.call("Older", 1.day.ago))
+    source.fetch
+    stub_request(:get, source.url).to_return(body: rss.call("Older, corrected", 1.minute.ago))
+    source.fetch
+
+    get "/feed.rss"
+
+    expect(items.map { |item| item.at_xpath("title").text }).to eq([ "Newer", "Older, corrected" ])
+  end
+
   it "omits the author when the Entry has none" do
     create_entry("anonymous", published_at: 1.day.ago, title: "Anonymous")
 

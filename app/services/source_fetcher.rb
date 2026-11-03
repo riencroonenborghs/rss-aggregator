@@ -16,8 +16,9 @@ class SourceFetcher
   def perform
     log_info "Fetching Source", url: @source.url
     items = parse(download).entries
-    @new_entries_count = items.count { |item| EntryIngestor.perform(@source, item).created? }
-    log_info "Fetched Source", url: @source.url, items: items.size, new_entries: @new_entries_count
+    outcomes = items.map { |item| EntryIngestor.perform(@source, item).outcome }.tally
+    @new_entries_count = outcomes.fetch(:created, 0)
+    log_info "Fetched Source", url: @source.url, items: items.size, **outcomes
   rescue Error => e
     log_error "Failed to fetch Source", e, url: @source.url
     raise

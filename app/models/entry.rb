@@ -27,6 +27,8 @@
 #
 # A single piece of content pulled from a Source and stored by the aggregator.
 class Entry < ApplicationRecord
+  RETENTION_PERIOD = 30.days
+
   belongs_to :source
 
   scope :newest_first, -> { order(published_at: :desc, id: :desc) }
