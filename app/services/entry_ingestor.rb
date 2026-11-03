@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Turns one parsed item from a Source into a stored Entry, creating it or
 # updating the existing one with the same identifier in place.
 #

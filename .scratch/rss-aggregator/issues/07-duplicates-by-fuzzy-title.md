@@ -9,11 +9,11 @@ Generic short titles such as "Weekly links" must not be merged. Descriptions are
 
 **Blocked by:** 06 (Duplicates by normalised link)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Two Entries from different Sources with near-identical long titles (for example, differing by one word or punctuation) published a day apart: the later one becomes a Duplicate of the earlier Original.
-- [ ] The same titles published more than 3 days apart: both are Originals.
-- [ ] Identical short generic titles (fewer than ~4 words) from different Sources: both are Originals.
-- [ ] Similar titles within the same Source: both are Originals.
-- [ ] Candidate Originals are limited to the ±3-day published window, so the comparison doesn't scan every Entry.
-- [ ] Covered by specs at the fetch-a-Source seam, and the Duplicate is absent from `/feed.rss`.
+- [x] Two Entries from different Sources with near-identical long titles (for example, differing by one word or punctuation) published a day apart: the later one becomes a Duplicate of the earlier Original.
+- [x] The same titles published more than 3 days apart: both are Originals.
+- [x] Identical short generic titles (fewer than ~4 words) from different Sources: both are Originals.
+- [x] Similar titles within the same Source: both are Originals.
+- [x] Candidate Originals are limited to the ±3-day published window, so the comparison doesn't scan every Entry.
+- [x] Covered by specs at the fetch-a-Source seam, and the Duplicate is absent from `/feed.rss`.

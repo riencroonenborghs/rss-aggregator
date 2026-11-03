@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe "Aggregate Feed", type: :request do
@@ -120,6 +122,25 @@ RSpec.describe "Aggregate Feed", type: :request do
     get "/feed.rss"
 
     expect(items.map { |item| item.at_xpath("title").text }).to eq([ "Original" ])
+  end
+
+  it "shows a story once when two Sources publish it under near-identical titles" do
+    other_source = Source.create!(url: "https://other.example.com/feed.xml", name: "Other")
+    rss = lambda do |title, published|
+      <<~XML
+        <rss version="2.0"><channel><title>x</title><link>https://x.example.com/</link><description>x</description>
+          <item><guid>story</guid><title>#{title}</title><pubDate>#{published.rfc2822}</pubDate></item>
+        </channel></rss>
+      XML
+    end
+    stub_request(:get, source.url).to_return(body: rss.call("Apple announces new MacBook Pro with the M5 chip", 1.day.ago))
+    stub_request(:get, other_source.url).to_return(body: rss.call("Apple Announces New MacBook Pro, With the M5 Chip!", 1.hour.ago))
+    source.fetch
+    other_source.fetch
+
+    get "/feed.rss"
+
+    expect(items.map { |item| item.at_xpath("source").text }).to eq([ "Example Blog" ])
   end
 
   it "doesn't count Duplicates towards a page" do

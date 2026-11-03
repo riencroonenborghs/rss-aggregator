@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Base for service objects.
 #
 # Including it adds a class-level `.perform(...)`, which builds an instance with

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_03_003347) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_03_004235) do
   create_table "entries", force: :cascade do |t|
     t.integer "source_id", null: false
     t.string "identifier", null: false
@@ -25,6 +25,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_003347) do
     t.datetime "updated_at", null: false
     t.string "normalised_link"
     t.integer "duplicate_of_id"
+    t.string "normalised_title"
     t.index ["duplicate_of_id"], name: "index_entries_on_duplicate_of_id"
     t.index ["normalised_link"], name: "index_entries_on_normalised_link"
     t.index ["published_at"], name: "index_entries_on_published_at"

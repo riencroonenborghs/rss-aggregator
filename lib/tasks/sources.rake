@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :sources do
   desc "Add a Source and fetch it immediately: bin/rails 'sources:add[URL,NAME]' (NAME optional)"
   task :add, [ :url, :name ] => :environment do |_task, args|

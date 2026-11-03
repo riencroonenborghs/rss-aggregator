@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
 # Duplicate detection, verified through the fetch-a-Source seam: each Source
@@ -8,7 +10,7 @@ RSpec.describe "Duplicate detection when fetching Sources" do
   let(:source_c) { Source.create!(url: "https://c.example.com/feed.xml", name: "C") }
 
   # Serves and fetches an RSS document for `source` built from item hashes
-  # (keys: guid, title, link; every item is published an hour ago).
+  # (keys: guid, title, link, published; published defaults to an hour ago).
   def fetch(source, *items)
     xml = Nokogiri::XML::Builder.new(encoding: "UTF-8") do |x|
       x.rss(version: "2.0") do
@@ -21,7 +23,7 @@ RSpec.describe "Duplicate detection when fetching Sources" do
               x.guid item.fetch(:guid), isPermaLink: "false"
               x.title item.fetch(:title, item[:guid])
               x.link item[:link] if item[:link]
-              x.pubDate 1.hour.ago.rfc2822
+              x.pubDate item.fetch(:published, 1.hour.ago).rfc2822
             end
           end
         end
@@ -70,6 +72,75 @@ RSpec.describe "Duplicate detection when fetching Sources" do
       fetch(source_b, guid: "b1")
 
       expect(entry(source_b, "b1")).to be_original
+    end
+  end
+
+  describe "matching by fuzzy title" do
+    let(:headline) { "Apple announces new MacBook Pro with the M5 chip" }
+
+    it "marks an Entry from another Source as a Duplicate when the titles differ only by case and punctuation" do
+      fetch(source_a, guid: "a1", title: headline, published: 2.days.ago)
+      fetch(source_b, guid: "b1", title: "Apple Announces New MacBook Pro, With the M5 Chip!", published: 1.day.ago)
+
+      expect(entry(source_b, "b1").duplicate_of).to eq(entry(source_a, "a1"))
+    end
+
+    it "marks an Entry from another Source as a Duplicate when the titles differ by one short word" do
+      fetch(source_a, guid: "a1", title: headline, published: 2.days.ago)
+      fetch(source_b, guid: "b1", title: "Apple announces new MacBook Pro with an M5 chip", published: 1.day.ago)
+
+      expect(entry(source_b, "b1").duplicate_of).to eq(entry(source_a, "a1"))
+    end
+
+    it "keeps both as Originals when the titles are just under 90% alike" do
+      fetch(source_a, guid: "a1", title: headline, published: 2.days.ago)
+      fetch(source_b, guid: "b1", title: "Apple announces cheaper MacBook Pro with the M5 chip", published: 1.day.ago)
+
+      expect(entry(source_b, "b1")).to be_original
+    end
+
+    it "keeps both as Originals when they were published more than 3 days apart" do
+      fetch(source_a, guid: "a1", title: headline, published: 5.days.ago)
+      fetch(source_b, guid: "b1", title: headline, published: 1.day.ago)
+
+      expect(entry(source_b, "b1")).to be_original
+    end
+
+    it "matches up to 3 days apart in either direction" do
+      fetch(source_a, guid: "a1", title: headline, published: 1.day.ago)
+      fetch(source_b, guid: "b1", title: headline, published: 3.days.ago + 1.minute)
+
+      expect(entry(source_b, "b1").duplicate_of).to eq(entry(source_a, "a1"))
+    end
+
+    it "keeps short generic titles as Originals even when identical" do
+      fetch(source_a, guid: "a1", title: "Weekly links roundup", published: 2.days.ago)
+      fetch(source_b, guid: "b1", title: "Weekly links roundup", published: 1.day.ago)
+
+      expect(entry(source_b, "b1")).to be_original
+    end
+
+    it "keeps similar titles within the same Source as Originals" do
+      fetch(source_a, { guid: "a1", title: headline, published: 2.days.ago },
+        { guid: "a2", title: "Apple announces new MacBook Pro with an M5 chip", published: 1.day.ago })
+
+      expect(source_a.entries).to all(be_original)
+    end
+
+    it "resolves a title match on a Duplicate to its Original" do
+      fetch(source_a, guid: "a1", title: headline, link: "https://a.example.com/apple", published: 2.days.ago)
+      fetch(source_b, guid: "b1", title: headline, link: "https://b.example.com/apple", published: 1.day.ago)
+      fetch(source_c, guid: "c1", title: headline, link: "https://c.example.com/apple", published: 1.hour.ago)
+
+      expect(entry(source_c, "c1").duplicate_of).to eq(entry(source_a, "a1"))
+    end
+
+    it "prefers a link match over a title match" do
+      fetch(source_a, guid: "a1", title: headline, published: 2.days.ago)
+      fetch(source_b, guid: "b1", title: "Something else entirely happened today", link: "https://news.example.com/story")
+      fetch(source_c, guid: "c1", title: headline, link: "https://news.example.com/story")
+
+      expect(entry(source_c, "c1").duplicate_of).to eq(entry(source_b, "b1"))
     end
   end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Serves the Aggregate Feed. Inherits from ActionController::Base rather than
 # ApplicationController so the modern-browser gate never blocks feed readers.
 class AggregateFeedsController < ActionController::Base

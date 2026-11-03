@@ -1,22 +1,25 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: entries
 # Database name: primary
 #
-#  id              :integer          not null, primary key
-#  author          :string
-#  content         :text
-#  first_seen_at   :datetime         not null
-#  identifier      :string           not null
-#  link            :string
-#  normalised_link :string
-#  published_at    :datetime         not null
-#  summary         :text
-#  title           :string
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  duplicate_of_id :integer
-#  source_id       :integer          not null
+#  id               :integer          not null, primary key
+#  author           :string
+#  content          :text
+#  first_seen_at    :datetime         not null
+#  identifier       :string           not null
+#  link             :string
+#  normalised_link  :string
+#  normalised_title :string
+#  published_at     :datetime         not null
+#  summary          :text
+#  title            :string
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  duplicate_of_id  :integer
+#  source_id        :integer          not null
 #
 # Indexes
 #
@@ -68,9 +71,22 @@ class Entry < ApplicationRecord
     link.strip.downcase
   end
 
+  # Normalises a title for fuzzy comparison across Sources: lowercased, with
+  # punctuation turned into spaces and runs of whitespace collapsed.
+  def self.normalise_title(title)
+    return if title.blank?
+
+    title.downcase.gsub(/[[:punct:][:space:]]+/, " ").strip.presence
+  end
+
   def link=(value)
     super
     self.normalised_link = self.class.normalise_link(value)
+  end
+
+  def title=(value)
+    super
+    self.normalised_title = self.class.normalise_title(value)
   end
 
   def original?

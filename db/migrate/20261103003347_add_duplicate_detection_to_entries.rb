@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddDuplicateDetectionToEntries < ActiveRecord::Migration[8.1]
   def up
     add_column :entries, :normalised_link, :string

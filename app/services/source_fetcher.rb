@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Fetches one Source end to end: downloads it politely (conditional GET with a
 # User-Agent), parses it and hands each item to the EntryIngestor.
 #
