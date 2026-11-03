@@ -1,6 +1,6 @@
 # RSS Aggregator
 
-Pulls Entries from many Sources and republishes them, unfiltered, as a single Aggregate Feed.
+Pulls Entries from many Sources and republishes them as a single Aggregate Feed, optionally narrowed by Keywords.
 
 ## Language
 
@@ -21,5 +21,9 @@ The first-seen Entry that one or more Duplicates point to. Every Entry that isn'
 _Avoid_: Canonical, master, primary
 
 **Aggregate Feed**:
-The one RSS 2.0 feed the aggregator exposes, made of Entries from all Sources, newest first.
-_Avoid_: Feed, output, combined feed
+The one RSS 2.0 feed the aggregator exposes, made of Originals from all Sources, newest first. It can be narrowed by one or more Keywords; narrowed or not, it is still the Aggregate Feed.
+_Avoid_: Feed, output, combined feed, filtered feed
+
+**Keyword**:
+A word or phrase that narrows the Aggregate Feed to Originals whose title or text contains it as whole words, ignoring case. When several Keywords are given, an Original matching any one of them is included.
+_Avoid_: Filter, search term, query, tag
