@@ -30,6 +30,13 @@ module RssAggregator
     config.x.aggregate_feed.link = ENV["AGGREGATE_FEED_LINK"]
     config.x.aggregate_feed.description = ENV["AGGREGATE_FEED_DESCRIPTION"]
 
+    # Mission Control (the Solid Queue UI at /jobs) is behind HTTP basic auth.
+    # Credentials come from these environment variables, or else from Rails
+    # credentials (mission_control.http_basic_auth_user / _password). With
+    # neither set, every request to /jobs is refused.
+    config.mission_control.jobs.http_basic_auth_user = ENV["MISSION_CONTROL_USER"].presence
+    config.mission_control.jobs.http_basic_auth_password = ENV["MISSION_CONTROL_PASSWORD"].presence
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

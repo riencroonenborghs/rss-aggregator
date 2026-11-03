@@ -22,6 +22,16 @@ bin/dev
 
 This starts the web server, the JS and CSS watchers, and the Solid Queue job worker (`bin/jobs`) from `Procfile.dev`.
 
+## Jobs UI
+
+Solid Queue's jobs, queues, workers and recurring tasks can be inspected at `/jobs` (Mission Control). It is behind HTTP basic auth; set the credentials with:
+
+```sh
+MISSION_CONTROL_USER=admin MISSION_CONTROL_PASSWORD=... bin/dev
+```
+
+or in Rails credentials as `mission_control.http_basic_auth_user` and `mission_control.http_basic_auth_password`. With neither set, every request to `/jobs` is refused.
+
 ## Tests
 
 ```sh
