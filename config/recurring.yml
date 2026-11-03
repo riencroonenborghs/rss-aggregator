@@ -4,6 +4,9 @@ shared: &shared
   fetch_all_sources:
     class: FetchAllSourcesJob
     schedule: every 30 minutes
+  prune_entries:
+    class: PruneEntriesJob
+    schedule: every day at 4am
 
 development:
   <<: *shared

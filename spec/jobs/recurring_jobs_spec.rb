@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "fetch jobs" do
+RSpec.describe "recurring jobs" do
   include ActiveJob::TestHelper
 
   it "schedules fetching all Sources every 30 minutes in development and production" do
@@ -28,5 +28,22 @@ RSpec.describe "fetch jobs" do
 
     expect { FetchSourceJob.perform_now(source) }.not_to raise_error
     expect(source.reload.last_error).to include("HTTP 503")
+  end
+
+  it "schedules pruning expired Entries daily in development and production" do
+    recurring = ActiveSupport::ConfigurationFile.parse(Rails.root.join("config/recurring.yml"))
+
+    %w[development production].each do |env|
+      expect(recurring.dig(env, "prune_entries")).to include("class" => "PruneEntriesJob", "schedule" => "every day at 4am")
+    end
+  end
+
+  it "prunes expired Entries" do
+    source = Source.create!(url: "https://one.example.com/feed.xml")
+    source.entries.create!(identifier: "old", published_at: 31.days.ago, first_seen_at: 31.days.ago)
+
+    PruneEntriesJob.perform_now
+
+    expect(Entry.count).to eq(0)
   end
 end
