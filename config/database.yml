@@ -9,9 +9,16 @@ default: &default
   max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
 
+# The primary database uses structure.sql, not schema.rb: schema.rb can't hold
+# the triggers that keep the Keyword index in sync.
+# See docs/adr/0002-keyword-matching-with-sqlite-fts5.md.
+primary: &primary
+  <<: *default
+  schema_format: sql
+
 development:
   primary:
-    <<: *default
+    <<: *primary
     database: storage/development.sqlite3
   queue:
     <<: *default
@@ -22,14 +29,14 @@ development:
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  <<: *default
+  <<: *primary
   database: storage/test.sqlite3
 
 # Store production database in the storage/ directory, which must persist
 # across deploys.
 production:
   primary:
-    <<: *default
+    <<: *primary
     database: storage/production.sqlite3
   cache:
     <<: *default

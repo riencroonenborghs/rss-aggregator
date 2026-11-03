@@ -6,18 +6,18 @@ Scope for this slice: the plain-text column on Entry, the FTS5 external-content 
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `?keyword=rails` returns Originals whose title contains "Rails", "rails" or "RAILS"
-- [ ] It returns Originals whose content contains the word, and Originals without content whose summary contains it
-- [ ] An Original with content isn't matched on its summary alone
-- [ ] Matching is whole-word and without stemming: `ai` doesn't match "said"; `rails` doesn't match "rail"
-- [ ] Matching ignores accents: `cafe` matches "café"
-- [ ] HTML is ignored: `href` and `strong` don't match an Original whose markup contains them; entities are decoded before matching
-- [ ] A Duplicate whose title matches doesn't appear, and doesn't pull in its Original when the Original itself doesn't match
-- [ ] Results are newest first and paged at the existing page size; `self`, `next` and `previous` links keep `keyword=`
-- [ ] FTS syntax in the Keyword (`"`, `*`, `-`, `NEAR`, `OR`) is treated as plain text and never causes an error
-- [ ] A blank or missing `keyword`, or one with no searchable words (`++`), returns the unfiltered feed
-- [ ] The FTS virtual table appears in the schema file
-- [ ] The migration fills the plain-text column for existing Entries and rebuilds the index; checked by hand against a development database with Entries
-- [ ] Tests go through the Aggregate Feed request spec only
+- [x] `?keyword=rails` returns Originals whose title contains "Rails", "rails" or "RAILS"
+- [x] It returns Originals whose content contains the word, and Originals without content whose summary contains it
+- [x] An Original with content isn't matched on its summary alone
+- [x] Matching is whole-word and without stemming: `ai` doesn't match "said"; `rails` doesn't match "rail"
+- [x] Matching ignores accents: `cafe` matches "café"
+- [x] HTML is ignored: `href` and `strong` don't match an Original whose markup contains them; entities are decoded before matching
+- [x] A Duplicate whose title matches doesn't appear, and doesn't pull in its Original when the Original itself doesn't match
+- [x] Results are newest first and paged at the existing page size; `self`, `next` and `previous` links keep `keyword=`
+- [x] FTS syntax in the Keyword (`"`, `*`, `-`, `NEAR`, `OR`) is treated as plain text and never causes an error
+- [x] A blank or missing `keyword`, or one with no searchable words (`++`), returns the unfiltered feed
+- [x] The FTS virtual table appears in the schema file
+- [x] The migration fills the plain-text column for existing Entries and rebuilds the index; checked by hand against a development database with Entries
+- [x] Tests go through the Aggregate Feed request spec only

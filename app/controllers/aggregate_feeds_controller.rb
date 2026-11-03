@@ -15,7 +15,9 @@ class AggregateFeedsController < ActionController::Base
 
     # Load one Entry past the page to learn whether a next page exists
     # without a separate count query.
-    entries = Entry.originals.includes(:source).newest_first.offset((@page - 1) * PAGE_SIZE).limit(PAGE_SIZE + 1).to_a
+    scope = Entry.originals
+    scope = scope.matching(keywords) if keywords.any?
+    entries = scope.includes(:source).newest_first.offset((@page - 1) * PAGE_SIZE).limit(PAGE_SIZE + 1).to_a
     @entries = entries.first(PAGE_SIZE)
     @next_page = @page + 1 if entries.size > PAGE_SIZE
     @previous_page = @page - 1 if @page > 1
@@ -35,8 +37,19 @@ class AggregateFeedsController < ActionController::Base
     end
   end
 
-  # Page 1 lives at /feed.rss; later pages at /feed.rss?page=N.
+  # The Keywords narrowing the Aggregate Feed. A Keyword without any letters or
+  # digits has no searchable words, so it's dropped; none left means the feed
+  # is unfiltered.
+  def keywords
+    @keywords ||= begin
+      keyword = params[:keyword]
+      keyword.is_a?(String) ? [ keyword.squish ].select { |k| k.match?(/[[:alnum:]]/) } : []
+    end
+  end
+
+  # Page 1 lives at /feed.rss; later pages at /feed.rss?page=N. Both keep the
+  # Keyword parameter as given.
   def page_url(page)
-    aggregate_feed_url(format: :rss, page: (page if page > 1))
+    aggregate_feed_url(format: :rss, keyword: params[:keyword].presence, page: (page if page > 1))
   end
 end

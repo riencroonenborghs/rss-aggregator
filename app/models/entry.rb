@@ -13,6 +13,7 @@
 #  link             :string
 #  normalised_link  :string
 #  normalised_title :string
+#  plain_text       :text
 #  published_at     :datetime         not null
 #  summary          :text
 #  title            :string
@@ -79,6 +80,25 @@ class Entry < ApplicationRecord
     title.downcase.gsub(/[[:punct:][:space:]]+/, " ").strip.presence
   end
 
+  # The text of an HTML fragment as a reader sees it: tags dropped, entities
+  # decoded and whitespace collapsed. Text nodes are joined with spaces so
+  # words in adjacent elements ("<p>a</p><p>b</p>") don't run together.
+  def self.plain_text_of(html)
+    return if html.blank?
+
+    Nokogiri::HTML5.fragment(html).xpath(".//text()").map(&:text).join(" ").squish.presence
+  end
+
+  # Originals and Duplicates whose title or plain text contains any of the
+  # given words or phrases, as whole words, ignoring case and accents. Each
+  # Keyword is quoted, so FTS5 query syntax in it is matched as plain text.
+  # See docs/adr/0002-keyword-matching-with-sqlite-fts5.md.
+  def self.matching(keywords)
+    query = keywords.map { |keyword| %("#{keyword.gsub('"', '""')}") }.join(" OR ")
+
+    where(id: select(:rowid).from("entries_fts").where("entries_fts MATCH ?", query))
+  end
+
   def link=(value)
     super
     self.normalised_link = self.class.normalise_link(value)
@@ -87,6 +107,16 @@ class Entry < ApplicationRecord
   def title=(value)
     super
     self.normalised_title = self.class.normalise_title(value)
+  end
+
+  def content=(value)
+    super
+    refresh_plain_text
+  end
+
+  def summary=(value)
+    super
+    refresh_plain_text
   end
 
   def original?
@@ -98,6 +128,12 @@ class Entry < ApplicationRecord
   end
 
   private
+
+  # The text a reader sees in the Aggregate Feed (content, falling back to
+  # summary) as plain text, for the Keyword index.
+  def refresh_plain_text
+    self.plain_text = self.class.plain_text_of(content.presence || summary)
+  end
 
   def duplicate_of_is_an_original_from_another_source
     return if duplicate_of.nil?

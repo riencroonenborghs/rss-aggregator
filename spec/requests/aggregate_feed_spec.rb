@@ -247,6 +247,130 @@ RSpec.describe "Aggregate Feed", type: :request do
     end
   end
 
+  describe "narrowed by a Keyword" do
+    def titles = items.map { |item| item.at_xpath("title").text }
+
+    it "includes Originals whose title contains the Keyword, ignoring case" do
+      create_entry("upper", title: "RAILS 9 released", published_at: 3.hours.ago)
+      create_entry("mixed", title: "What's new in Rails", published_at: 2.hours.ago)
+      create_entry("other", title: "Elixir 2.0", published_at: 1.hour.ago)
+
+      get "/feed.rss", params: { keyword: "rails" }
+
+      expect(titles).to eq([ "What's new in Rails", "RAILS 9 released" ])
+    end
+
+    it "includes Originals whose content contains the Keyword" do
+      create_entry("content", title: "Weekly links", content: "<p>A post about <strong>Rails</strong>.</p>", published_at: 1.hour.ago)
+      create_entry("other", title: "Other", content: "<p>Nothing here</p>", published_at: 2.hours.ago)
+
+      get "/feed.rss", params: { keyword: "rails" }
+
+      expect(titles).to eq([ "Weekly links" ])
+    end
+
+    it "uses the summary when an Original has no content" do
+      create_entry("summary", title: "Summary only", summary: "All about Rails", published_at: 1.hour.ago)
+
+      get "/feed.rss", params: { keyword: "rails" }
+
+      expect(titles).to eq([ "Summary only" ])
+    end
+
+    it "ignores the summary when an Original has content" do
+      create_entry("both", title: "Both", summary: "All about Rails", content: "<p>Something else</p>", published_at: 1.hour.ago)
+
+      get "/feed.rss", params: { keyword: "rails" }
+
+      expect(items).to be_empty
+    end
+
+    it "matches whole words only, without stemming" do
+      create_entry("said", title: "He said it would rain", published_at: 3.hours.ago)
+      create_entry("rail", title: "A rail strike", published_at: 2.hours.ago)
+      create_entry("ai", title: "AI everywhere", published_at: 1.hour.ago)
+
+      get "/feed.rss", params: { keyword: "ai" }
+      expect(titles).to eq([ "AI everywhere" ])
+
+      get "/feed.rss", params: { keyword: "rails" }
+      expect(items).to be_empty
+    end
+
+    it "ignores accents" do
+      create_entry("cafe", title: "The best café in town", published_at: 1.hour.ago)
+
+      get "/feed.rss", params: { keyword: "cafe" }
+
+      expect(titles).to eq([ "The best café in town" ])
+    end
+
+    it "ignores HTML markup and decodes entities" do
+      create_entry("markup", title: "Markup", content: %(<p class="lead"><a href="https://rails.example.com">A link</a> to AT&amp;T</p>),
+        published_at: 1.hour.ago)
+
+      [ "href", "class", "lead", "rails", "amp" ].each do |keyword|
+        get "/feed.rss", params: { keyword: keyword }
+        expect(items).to be_empty, "expected #{keyword.inspect} not to match"
+      end
+
+      get "/feed.rss", params: { keyword: "AT&T" }
+      expect(titles).to eq([ "Markup" ])
+    end
+
+    it "lists only Originals, and a Duplicate's text never pulls in its Original" do
+      other_source = Source.create!(url: "https://other.example.com/feed.xml", name: "Other")
+      original = create_entry("original", title: "A new framework", published_at: 2.hours.ago)
+      other_source.entries.create!(identifier: "duplicate", title: "Rails: a new framework", published_at: 1.hour.ago,
+        first_seen_at: Time.current, duplicate_of: original)
+
+      get "/feed.rss", params: { keyword: "rails" }
+
+      expect(items).to be_empty
+    end
+
+    it "treats FTS syntax in the Keyword as plain text" do
+      create_entry("rails", title: "Rails", published_at: 1.hour.ago)
+
+      [ %("rails), "rails*", "-rails", "rails OR elixir", "NEAR(rails)", "title:rails", "^rails" ].each do |keyword|
+        get "/feed.rss", params: { keyword: keyword }
+
+        expect(response).to have_http_status(:ok), "expected #{keyword.inspect} not to error"
+      end
+
+      get "/feed.rss", params: { keyword: "rails OR elixir" }
+      expect(items).to be_empty
+    end
+
+    it "serves the unfiltered feed for a blank Keyword or one with no searchable words" do
+      create_entry("one", title: "One", published_at: 2.hours.ago)
+      create_entry("two", title: "Two", published_at: 1.hour.ago)
+
+      [ "", "   ", "++", %("") ].each do |keyword|
+        get "/feed.rss", params: { keyword: keyword }
+
+        expect(titles).to eq(%w[Two One]), "expected #{keyword.inspect} to leave the feed unfiltered"
+      end
+    end
+
+    it "pages narrowed results and keeps the Keyword in the paging links" do
+      create_entry("other", title: "Other", published_at: 1.second.ago)
+      insert_entries(150)
+
+      get "/feed.rss", params: { keyword: "entry" }
+
+      expect(titles).to eq((1..100).map { |n| "Entry #{n}" })
+      expect(paging_link("self")).to eq("http://www.example.com/feed.rss?keyword=entry")
+      expect(paging_link("next")).to eq("http://www.example.com/feed.rss?keyword=entry&page=2")
+
+      get "/feed.rss", params: { keyword: "entry", page: 2 }
+
+      expect(titles).to eq((101..150).map { |n| "Entry #{n}" })
+      expect(paging_link("previous")).to eq("http://www.example.com/feed.rss?keyword=entry")
+      expect(paging_link("next")).to be_nil
+    end
+  end
+
   describe "item description" do
     def description = items.first.at_xpath("description").text
 
