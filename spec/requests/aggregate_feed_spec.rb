@@ -369,6 +369,107 @@ RSpec.describe "Aggregate Feed", type: :request do
       expect(paging_link("previous")).to eq("http://www.example.com/feed.rss?keyword=entry")
       expect(paging_link("next")).to be_nil
     end
+
+    describe "as Entries change" do
+      # Asks FTS5 to compare its index against the entries table. Deleted
+      # Entries can't show up in the feed either way, so this is how a stale
+      # index entry left behind by a delete becomes visible.
+      def expect_keyword_index_in_sync
+        expect { ActiveRecord::Base.connection.execute("INSERT INTO entries_fts (entries_fts, rank) VALUES ('integrity-check', 1)") }
+          .not_to raise_error
+      end
+
+      def other_source = @other_source ||= Source.create!(url: "https://other.example.com/feed.xml", name: "Other")
+
+      it "matches an updated title and no longer matches the old one" do
+        entry = create_entry("story", title: "Rails news", published_at: 1.hour.ago)
+
+        entry.update!(title: "Elixir news")
+
+        get "/feed.rss", params: { keyword: "rails" }
+        expect(items).to be_empty
+        get "/feed.rss", params: { keyword: "elixir" }
+        expect(titles).to eq([ "Elixir news" ])
+      end
+
+      it "matches updated content and no longer matches the old content" do
+        entry = create_entry("story", title: "Weekly links", content: "<p>About Rails</p>", published_at: 1.hour.ago)
+
+        entry.update!(content: "<p>About Elixir</p>")
+
+        get "/feed.rss", params: { keyword: "rails" }
+        expect(items).to be_empty
+        get "/feed.rss", params: { keyword: "elixir" }
+        expect(titles).to eq([ "Weekly links" ])
+      end
+
+      it "matches an updated summary when there is no content" do
+        entry = create_entry("story", title: "Weekly links", summary: "About Rails", published_at: 1.hour.ago)
+
+        entry.update!(summary: "About Elixir")
+
+        get "/feed.rss", params: { keyword: "rails" }
+        expect(items).to be_empty
+        get "/feed.rss", params: { keyword: "elixir" }
+        expect(titles).to eq([ "Weekly links" ])
+      end
+
+      it "matches the wording a Source publishes when it updates an Entry" do
+        rss = lambda do |title|
+          <<~XML
+            <rss version="2.0"><channel><title>x</title><link>https://blog.example.com/</link><description>x</description>
+              <item><guid>story</guid><title>#{title}</title><pubDate>#{1.hour.ago.rfc2822}</pubDate></item>
+            </channel></rss>
+          XML
+        end
+        stub_request(:get, source.url).to_return(body: rss.call("Rails news"))
+        source.fetch
+        stub_request(:get, source.url).to_return(body: rss.call("Elixir news"))
+        source.fetch
+
+        get "/feed.rss", params: { keyword: "rails" }
+        expect(items).to be_empty
+        get "/feed.rss", params: { keyword: "elixir" }
+        expect(titles).to eq([ "Elixir news" ])
+      end
+
+      it "drops Entries removed by retention" do
+        original = create_entry("expired", title: "Old Rails news", published_at: 31.days.ago)
+        other_source.entries.create!(identifier: "late-duplicate", title: "Old Rails news", published_at: 1.day.ago,
+          first_seen_at: Time.current, duplicate_of: original)
+        create_entry("recent", title: "New Rails news", published_at: 1.hour.ago)
+
+        EntryPruner.perform
+
+        get "/feed.rss", params: { keyword: "rails" }
+        expect(titles).to eq([ "New Rails news" ])
+        expect_keyword_index_in_sync
+      end
+
+      it "drops a removed Source's Entries and makes a promoted Duplicate matchable" do
+        original = create_entry("story", title: "Rails 9 released", published_at: 2.hours.ago)
+        other_source.entries.create!(identifier: "story", title: "Rails 9 is out", published_at: 1.hour.ago,
+          first_seen_at: Time.current, duplicate_of: original)
+        create_entry("solo", title: "Rails tips", published_at: 3.hours.ago)
+
+        SourceRemover.perform(source)
+
+        get "/feed.rss", params: { keyword: "rails" }
+        expect(titles).to eq([ "Rails 9 is out" ])
+        expect_keyword_index_in_sync
+      end
+
+      it "doesn't let a new Entry inherit a deleted Entry's index entry" do
+        create_entry("gone", title: "Rails news", published_at: 1.hour.ago)
+        Entry.delete_all
+        create_entry("new", title: "Elixir news", published_at: 1.hour.ago)
+
+        get "/feed.rss", params: { keyword: "rails" }
+
+        expect(items).to be_empty
+        expect_keyword_index_in_sync
+      end
+    end
   end
 
   describe "item description" do

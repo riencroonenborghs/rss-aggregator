@@ -23,7 +23,15 @@ CREATE TABLE IF NOT EXISTS 'entries_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID;
 CREATE TRIGGER entries_fts_after_insert AFTER INSERT ON entries BEGIN
   INSERT INTO entries_fts (rowid, title, plain_text) VALUES (new.id, new.title, new.plain_text);
 END;
+CREATE TRIGGER entries_fts_after_delete AFTER DELETE ON entries BEGIN
+  INSERT INTO entries_fts (entries_fts, rowid, title, plain_text) VALUES ('delete', old.id, old.title, old.plain_text);
+END;
+CREATE TRIGGER entries_fts_after_update AFTER UPDATE OF title, plain_text ON entries BEGIN
+  INSERT INTO entries_fts (entries_fts, rowid, title, plain_text) VALUES ('delete', old.id, old.title, old.plain_text);
+  INSERT INTO entries_fts (rowid, title, plain_text) VALUES (new.id, new.title, new.plain_text);
+END;
 INSERT INTO "schema_migrations" (version) VALUES
+('20261103100000'),
 ('20261103090000'),
 ('20261103004235'),
 ('20261103003347'),
