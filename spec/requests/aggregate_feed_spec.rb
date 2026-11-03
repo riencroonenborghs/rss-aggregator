@@ -370,6 +370,95 @@ RSpec.describe "Aggregate Feed", type: :request do
       expect(paging_link("next")).to be_nil
     end
 
+    describe "with several Keywords" do
+      def channel_title = Nokogiri::XML(response.body).at_xpath("/rss/channel/title").text
+
+      it "includes Originals matching any of them, newest first, each once" do
+        create_entry("ruby", title: "Ruby 4 released", published_at: 3.hours.ago)
+        create_entry("both", title: "Ruby and Elixir compared", published_at: 2.hours.ago)
+        create_entry("elixir", title: "Elixir 2.0", published_at: 1.hour.ago)
+        create_entry("other", title: "Go 2.0", published_at: 30.minutes.ago)
+
+        get "/feed.rss", params: { keyword: "ruby,elixir" }
+
+        expect(titles).to eq([ "Elixir 2.0", "Ruby and Elixir compared", "Ruby 4 released" ])
+      end
+
+      it "matches a Keyword with spaces as a phrase" do
+        create_entry("phrase", title: "What's new in Ruby on Rails", published_at: 2.hours.ago)
+        create_entry("apart", title: "Rails, not Ruby", published_at: 1.hour.ago)
+
+        get "/feed.rss", params: { keyword: "ruby on rails" }
+
+        expect(titles).to eq([ "What's new in Ruby on Rails" ])
+      end
+
+      it "trims Keywords and ignores blank and repeated ones" do
+        create_entry("ruby", title: "Ruby", published_at: 1.hour.ago)
+
+        get "/feed.rss", params: { keyword: " ruby , ,Ruby,,elixir, " }
+
+        expect(titles).to eq([ "Ruby" ])
+        expect(channel_title).to eq("RSS Aggregator: ruby, elixir")
+      end
+
+      it "applies only the first 20 Keywords" do
+        create_entry("k21", title: "k21", published_at: 1.hour.ago)
+        keywords = (1..21).map { |n| "k#{n}" }
+
+        get "/feed.rss", params: { keyword: keywords.join(",") }
+
+        expect(items).to be_empty
+        expect(channel_title).to eq("RSS Aggregator: #{keywords.first(20).join(", ")}")
+      end
+
+      it "counts the 20 after dropping blank and repeated Keywords" do
+        create_entry("k20", title: "k20", published_at: 1.hour.ago)
+
+        get "/feed.rss", params: { keyword: ([ "k1", "", "K1" ] * 10 + (2..20).map { |n| "k#{n}" }).join(",") }
+
+        expect(titles).to eq([ "k20" ])
+      end
+
+      it "ignores Keywords with no searchable words, and is unfiltered when none are left" do
+        create_entry("ruby", title: "Ruby", published_at: 2.hours.ago)
+        create_entry("other", title: "Other", published_at: 1.hour.ago)
+
+        get "/feed.rss", params: { keyword: "++,ruby" }
+        expect(titles).to eq([ "Ruby" ])
+        expect(channel_title).to eq("RSS Aggregator: ruby")
+
+        get "/feed.rss", params: { keyword: "++, --,," }
+        expect(titles).to eq(%w[Other Ruby])
+        expect(channel_title).to eq("RSS Aggregator")
+      end
+
+      it "treats FTS syntax in any Keyword as plain text" do
+        create_entry("ruby", title: "Ruby", published_at: 1.hour.ago)
+
+        get "/feed.rss", params: { keyword: %(ruby,"elixir,go*,NEAR(a b)) }
+
+        expect(response).to have_http_status(:ok)
+        expect(titles).to eq([ "Ruby" ])
+      end
+
+      it "names the Keywords after the configured channel title" do
+        with_aggregate_feed_config(title: "My Reading List") do
+          get "/feed.rss", params: { keyword: "ruby on rails,elixir" }
+        end
+
+        expect(channel_title).to eq("My Reading List: ruby on rails, elixir")
+      end
+
+      it "keeps the Keywords in the paging links" do
+        insert_entries(101)
+
+        get "/feed.rss", params: { keyword: "entry,elixir" }
+
+        expect(paging_link("next")).to eq("http://www.example.com/feed.rss?keyword=entry%2Celixir&page=2")
+      end
+    end
+
     describe "as Entries change" do
       # Asks FTS5 to compare its index against the entries table. Deleted
       # Entries can't show up in the feed either way, so this is how a stale
