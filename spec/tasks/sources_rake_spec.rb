@@ -40,6 +40,26 @@ RSpec.describe "sources rake tasks" do
     end
   end
 
+  describe "sources:remove" do
+    it "removes the Source and reports what happened" do
+      source = Source.create!(url: url, name: "Example Blog")
+      original = source.entries.create!(identifier: "a", published_at: 1.day.ago, first_seen_at: 2.hours.ago)
+      source.entries.create!(identifier: "b", published_at: 1.day.ago, first_seen_at: 1.hour.ago)
+      other = Source.create!(url: "https://other.example.com/feed.xml")
+      other.entries.create!(identifier: "c", published_at: 1.day.ago, first_seen_at: 1.hour.ago, duplicate_of: original)
+
+      expect { run("sources:remove", url) }.to output(
+        "Removed Example Blog: 2 Entries deleted, 1 Duplicate(s) from other Sources promoted to Original\n"
+      ).to_stdout
+      expect(Source.pluck(:url)).to eq([ "https://other.example.com/feed.xml" ])
+    end
+
+    it "prints a clear message for an unknown URL" do
+      expect { run("sources:remove", "https://unknown.example.com/feed.xml") }
+        .to raise_error(SystemExit).and output(/No Source with URL "https:\/\/unknown.example.com\/feed.xml"/).to_stderr
+    end
+  end
+
   describe "sources:list" do
     it "prints each Source's name, URL, last fetch time, last error and Entry count" do
       healthy = Source.create!(url: url, name: "Healthy", last_fetched_at: Time.utc(2026, 11, 3, 8))
