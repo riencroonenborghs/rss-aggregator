@@ -14,13 +14,13 @@ Glossary terms (Source, Entry, Aggregate Feed) are used for models and modules. 
 
 **Blocked by:** 01 (Remove Kamal, add feedjira and WebMock, document the jobs worker)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] A Source has a unique URL and an optional name. `sources:add` rejects a URL that is already registered and prints a clear message.
-- [ ] `sources:add` fetches the new Source synchronously and prints how many Entries were stored.
-- [ ] Fetching an RSS 2.0 fixture stores one Entry per item, with title, link, author, published date, first-seen time, summary and content.
-- [ ] Entries are unique per (Source, guid), so fetching the same fixture twice doesn't create repeats.
-- [ ] `GET /feed.rss` responds with an RSS content type and well-formed RSS 2.0, with Entries ordered newest first by published date.
-- [ ] Each item has the original title and link, a guid that stays the same across requests, pubDate, `<source url>` with the Source's name, and the content in the description with HTML preserved.
-- [ ] The Aggregate Feed needs no authentication.
-- [ ] Specs exist at both seams: fetching a Source, with WebMock and a fixture, and a `/feed.rss` request spec that parses the XML.
+- [x] A Source has a unique URL and an optional name. `sources:add` rejects a URL that is already registered and prints a clear message.
+- [x] `sources:add` fetches the new Source synchronously and prints how many Entries were stored.
+- [x] Fetching an RSS 2.0 fixture stores one Entry per item, with title, link, author, published date, first-seen time, summary and content.
+- [x] Entries are unique per (Source, guid), so fetching the same fixture twice doesn't create repeats.
+- [x] `GET /feed.rss` responds with an RSS content type and well-formed RSS 2.0, with Entries ordered newest first by published date.
+- [x] Each item has the original title and link, a guid that stays the same across requests, pubDate, `<source url>` with the Source's name, and the content in the description with HTML preserved.
+- [x] The Aggregate Feed needs no authentication.
+- [x] Specs exist at both seams: fetching a Source, with WebMock and a fixture, and a `/feed.rss` request spec that parses the XML.
