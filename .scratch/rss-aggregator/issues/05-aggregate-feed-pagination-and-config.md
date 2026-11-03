@@ -9,10 +9,10 @@
 
 **Blocked by:** 02 (Tracer bullet: add a Source and see its Entries in /feed.rss)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] With 250 Entries, page 1 has the 100 newest, `?page=3` has the last 50, and `?page=4` returns a valid, empty RSS 2.0 channel.
-- [ ] Page 1 has self and next links but no prev link. Middle pages have both. The last page has prev but no next.
-- [ ] The channel title, link and description come from config, and the defaults apply when the config is unset.
-- [ ] An Entry with no content uses its summary as the description. HTML in either is preserved and correctly escaped or wrapped in CDATA.
-- [ ] All of the above are covered by `/feed.rss` request specs.
+- [x] With 250 Entries, page 1 has the 100 newest, `?page=3` has the last 50, and `?page=4` returns a valid, empty RSS 2.0 channel.
+- [x] Page 1 has self and next links but no prev link. Middle pages have both. The last page has prev but no next.
+- [x] The channel title, link and description come from config, and the defaults apply when the config is unset.
+- [x] An Entry with no content uses its summary as the description. HTML in either is preserved and correctly escaped or wrapped in CDATA.
+- [x] All of the above are covered by `/feed.rss` request specs.

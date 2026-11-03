@@ -21,6 +21,13 @@ module RssAggregator
     config.x.source_fetcher.user_agent = ENV.fetch("SOURCE_FETCHER_USER_AGENT", "RSSAggregator/1.0")
     config.x.source_fetcher.timeout = 15
 
+    # Channel metadata for the Aggregate Feed (/feed.rss). Anything left blank
+    # falls back to a default: "RSS Aggregator", the app's own URL, and a
+    # one-line description.
+    config.x.aggregate_feed.title = ENV["AGGREGATE_FEED_TITLE"]
+    config.x.aggregate_feed.link = ENV["AGGREGATE_FEED_LINK"]
+    config.x.aggregate_feed.description = ENV["AGGREGATE_FEED_DESCRIPTION"]
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
