@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_03_002503) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_03_003347) do
   create_table "entries", force: :cascade do |t|
     t.integer "source_id", null: false
     t.string "identifier", null: false
@@ -23,6 +23,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_002503) do
     t.text "content"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "normalised_link"
+    t.integer "duplicate_of_id"
+    t.index ["duplicate_of_id"], name: "index_entries_on_duplicate_of_id"
+    t.index ["normalised_link"], name: "index_entries_on_normalised_link"
     t.index ["published_at"], name: "index_entries_on_published_at"
     t.index ["source_id", "identifier"], name: "index_entries_on_source_id_and_identifier", unique: true
     t.index ["source_id"], name: "index_entries_on_source_id"
@@ -41,5 +45,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_03_002503) do
     t.index ["url"], name: "index_sources_on_url", unique: true
   end
 
+  add_foreign_key "entries", "entries", column: "duplicate_of_id"
   add_foreign_key "entries", "sources"
 end

@@ -33,6 +33,7 @@ class EntryIngestor
     if @entry.new_record?
       @entry.first_seen_at = Time.current
       @entry.published_at = published_at || @entry.first_seen_at
+      @entry.duplicate_of = DuplicateDetector.perform(@entry).original
     end
 
     @outcome = if @entry.new_record? then :created elsif @entry.changed? then :updated else :unchanged end
@@ -55,7 +56,12 @@ class EntryIngestor
   def log_entry_saved(changes)
     case outcome
     when :created
-      log_info "Stored new Entry", source_url: @source.url, entry_id: @entry.id, title: @entry.title
+      if @entry.duplicate?
+        log_info "Stored new Entry as a Duplicate", source_url: @source.url, entry_id: @entry.id,
+          title: @entry.title, original_id: @entry.duplicate_of_id
+      else
+        log_info "Stored new Entry", source_url: @source.url, entry_id: @entry.id, title: @entry.title
+      end
     when :updated
       log_info "Updated Entry", source_url: @source.url, entry_id: @entry.id, changed: changes
     end

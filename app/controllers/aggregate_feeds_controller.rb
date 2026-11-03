@@ -13,7 +13,7 @@ class AggregateFeedsController < ActionController::Base
 
     # Load one Entry past the page to learn whether a next page exists
     # without a separate count query.
-    entries = Entry.includes(:source).newest_first.offset((@page - 1) * PAGE_SIZE).limit(PAGE_SIZE + 1).to_a
+    entries = Entry.originals.includes(:source).newest_first.offset((@page - 1) * PAGE_SIZE).limit(PAGE_SIZE + 1).to_a
     @entries = entries.first(PAGE_SIZE)
     @next_page = @page + 1 if entries.size > PAGE_SIZE
     @previous_page = @page - 1 if @page > 1

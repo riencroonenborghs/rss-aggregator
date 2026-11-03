@@ -10,6 +10,6 @@ The aggregator does no filtering, but the same story often appears in several So
 
 ## Consequences
 
-- Duplicates always point to the root Original (no chains), and incoming Entries are compared only against Originals.
+- Duplicates always point to the root Original (no chains). A new Entry whose link matches a Duplicate is attached to that Duplicate's Original, and an Original from the new Entry's own Source never counts as a match.
 - Retention deletes Duplicates together with their Original.
 - Removing a Source promotes the earliest Duplicate of each affected Original to be the new Original.

@@ -8,11 +8,11 @@ Duplicates always point to the root Original, so there are no chains. Incoming E
 
 **Blocked by:** 02 (Tracer bullet: add a Source and see its Entries in /feed.rss)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] An Entry from Source B whose link differs from an Original from Source A only by scheme, `www.`, trailing slash, `utm_*` params or fragment is stored as a Duplicate of that Original.
-- [ ] A Duplicate always points to an Original. An Entry that matches a Duplicate's link is attached to the Duplicate's Original.
-- [ ] Two Entries in the same Source with the same normalised link are both Originals.
-- [ ] Updating an existing Entry in place never changes whether it is a Duplicate.
-- [ ] `/feed.rss` lists only Originals, and the Duplicate never appears.
-- [ ] Covered at both seams: fetching a Source for detection, and `/feed.rss` for hiding Duplicates.
+- [x] An Entry from Source B whose link differs from an Original from Source A only by scheme, `www.`, trailing slash, `utm_*` params or fragment is stored as a Duplicate of that Original.
+- [x] A Duplicate always points to an Original. An Entry that matches a Duplicate's link is attached to the Duplicate's Original.
+- [x] Two Entries in the same Source with the same normalised link are both Originals.
+- [x] Updating an existing Entry in place never changes whether it is a Duplicate.
+- [x] `/feed.rss` lists only Originals, and the Duplicate never appears.
+- [x] Covered at both seams: fetching a Source for detection, and `/feed.rss` for hiding Duplicates.

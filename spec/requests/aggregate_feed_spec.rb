@@ -111,6 +111,29 @@ RSpec.describe "Aggregate Feed", type: :request do
     expect(items.first.at_xpath("dc:creator", "dc" => "http://purl.org/dc/elements/1.1/")).to be_nil
   end
 
+  it "lists only Originals, never their Duplicates" do
+    other_source = Source.create!(url: "https://other.example.com/feed.xml", name: "Other")
+    original = create_entry("original", title: "Original", published_at: 2.hours.ago, link: "https://news.example.com/story")
+    other_source.entries.create!(identifier: "duplicate", title: "Duplicate", link: "http://news.example.com/story/",
+      published_at: 1.hour.ago, first_seen_at: Time.current, duplicate_of: original)
+
+    get "/feed.rss"
+
+    expect(items.map { |item| item.at_xpath("title").text }).to eq([ "Original" ])
+  end
+
+  it "doesn't count Duplicates towards a page" do
+    other_source = Source.create!(url: "https://other.example.com/feed.xml", name: "Other")
+    insert_entries(100)
+    other_source.entries.create!(identifier: "duplicate", title: "Duplicate", published_at: 1.second.ago,
+      first_seen_at: Time.current, duplicate_of: source.entries.first)
+
+    get "/feed.rss"
+
+    expect(items.size).to eq(100)
+    expect(paging_link("next")).to be_nil
+  end
+
   describe "pagination" do
     before { insert_entries(250) }
 
