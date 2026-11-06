@@ -6,7 +6,7 @@ gem "bootsnap", require: false
 gem "cssbundling-rails"
 gem "feedjira"
 gem "httparty"
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.2"
 gem "io-console", "0.9.4"
 gem "jbuilder"
 gem "jsbundling-rails"
