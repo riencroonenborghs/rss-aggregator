@@ -25,7 +25,7 @@ class Source < ApplicationRecord
   has_many :entries, dependent: :delete_all
 
   validates :url, presence: true, uniqueness: true,
-    format: { with: %r{\Ahttps?://}i, message: "must start with http:// or https://" }
+    format: { with: %r{\Ahttps?://\z}i, message: "must start with http:// or https://" }
 
   # Fetches the Source once. Returns the SourceFetcher, which says whether it
   # worked and how many new Entries were stored.
