@@ -7,6 +7,7 @@ gem "cssbundling-rails"
 gem "feedjira"
 gem "httparty"
 gem "image_processing", "~> 1.2"
+gem "io-console", "0.9.4"
 gem "jbuilder"
 gem "jsbundling-rails"
 gem "mission_control-jobs"
@@ -34,6 +35,16 @@ end
 
 group :development do
   gem "web-console"
+
+  # Deployment
+  gem "bcrypt_pbkdf", "~> 1.1"
+  gem "capistrano"
+  gem "capistrano3-puma", "~> 7.1"
+  gem "capistrano-bundler"
+  gem "capistrano-nvm", require: false
+  gem "capistrano-rails"
+  gem "capistrano-rbenv"
+  gem "ed25519", "~> 1.4"
 end
 
 group :test do

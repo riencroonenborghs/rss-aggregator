@@ -9,4 +9,5 @@ Rails.application.routes.draw do
   mount MissionControl::Jobs::Engine, at: "/jobs"
 
   get "feed" => "aggregate_feeds#show", as: :aggregate_feed, format: true, constraints: { format: :rss }
+  root to: redirect("/feed.rss")
 end
