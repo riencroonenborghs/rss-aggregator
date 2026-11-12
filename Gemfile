@@ -39,7 +39,7 @@ group :development do
   # Deployment
   gem "bcrypt_pbkdf", "~> 1.1"
   gem "capistrano"
-  gem "capistrano3-puma", "~> 7.1"
+  gem "capistrano3-puma", "~> 8.1"
   gem "capistrano-bundler"
   gem "capistrano-nvm", require: false
   gem "capistrano-rails"
